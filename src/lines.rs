@@ -2,7 +2,7 @@ use std::f32::consts::PI;
 use bevy::{
     prelude::*,
     pbr::{MaterialPipeline, MaterialPipelineKey},
-    reflect::TypeUuid,
+    reflect::{TypeUuid, TypePath},
     render::{
         mesh::{MeshVertexBufferLayout, PrimitiveTopology},
         render_resource::{
@@ -128,7 +128,7 @@ pub fn setup_cylinders(
     });
 }
 
-#[derive(Default, AsBindGroup, TypeUuid, Debug, Clone)]
+#[derive(Default, AsBindGroup, TypeUuid, TypePath, Debug, Clone)]
 #[uuid = "050ce6ac-080a-4d8c-b6b5-b5bab7560d8f"]
 pub struct LineMaterial {
     #[uniform(0)]

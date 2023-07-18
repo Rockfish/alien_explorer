@@ -27,7 +27,7 @@ pub struct Player {
 }
 
 #[derive(Default)]
-pub struct cake {
+pub struct Cake {
     pub(crate) entity: Option<Entity>,
     pub(crate) i: f32,
     pub(crate) j: f32,
@@ -38,7 +38,7 @@ pub struct cake {
 pub struct Game {
     pub board: Vec<Vec<Cell>>,
     pub player: Player,
-    pub cake: cake,
+    pub cake: Cake,
     pub score: i32,
     pub cake_eaten: u32,
     pub camera_should_focus: Vec3,
@@ -71,28 +71,28 @@ pub fn move_player(
             if game.player.i < BOARD_SIZE_I - 1.0 {
                 game.player.i += 0.25;
             }
-            game.player.rotation = -PI / 2.;
+            game.player.rotation = PI / 2.;
             moved = true;
         }
         if keyboard_input.pressed(KeyCode::Down) {
             if game.player.i > 0.0 {
                 game.player.i -= 0.25;
             }
-            game.player.rotation = PI / 2.;
+            game.player.rotation = -PI / 2.;
             moved = true;
         }
         if keyboard_input.pressed(KeyCode::Right) {
             if game.player.j < BOARD_SIZE_J - 1.0 {
                 game.player.j += 0.25;
             }
-            game.player.rotation = PI;
+            game.player.rotation = 0.0;
             moved = true;
         }
         if keyboard_input.pressed(KeyCode::Left) {
             if game.player.j > 0.0 {
                 game.player.j -= 0.25;
             }
-            game.player.rotation = 0.0;
+            game.player.rotation = PI;
             moved = true;
         }
 
@@ -101,9 +101,9 @@ pub fn move_player(
             game.player.move_cooldown.reset();
             *transforms.get_mut(game.player.entity.unwrap()).unwrap() = Transform {
                 translation: Vec3::new(
-                    game.player.i as f32,
+                    game.player.i,
                     game.board[game.player.j.round() as usize][game.player.i.round() as usize].height,
-                    game.player.j as f32,
+                    game.player.j,
                 ),
                 rotation: Quat::from_rotation_y(game.player.rotation),
                 ..default()
@@ -111,7 +111,7 @@ pub fn move_player(
         }
     }
 
-    // eat the cake!
+    // eat the Cake!
     if let Some(entity) = game.cake.entity {
         if game.player.i == game.cake.i && game.player.j == game.cake.j {
             game.score += 2;
@@ -129,12 +129,12 @@ pub fn spawn_cake(
     mut commands: Commands,
     mut game: ResMut<Game>,
 ) {
-    // make sure we wait enough time before spawning the next cake
+    // make sure we wait enough time before spawning the next Cake
     if !timer.0.tick(time.delta()).finished() {
         return;
     }
 
-    info!("Spawning a new cake");
+    info!("Spawning a new Cake");
 
     if let Some(entity) = game.cake.entity {
         game.score -= 3;
@@ -146,7 +146,7 @@ pub fn spawn_cake(
         // }
     }
 
-    // ensure cake doesn't spawn on the player
+    // ensure Cake doesn't spawn on the player
     loop {
         game.cake.i = rand::thread_rng().gen_range(0..BOARD_SIZE_I.round() as usize) as f32;
         game.cake.j = rand::thread_rng().gen_range(0..BOARD_SIZE_J.round() as usize) as f32;
@@ -212,11 +212,12 @@ pub fn display_system(
     game: Res<Game>,
     mut query: Query<&mut Text>
 ) {
-    let mut text = query.single_mut();
-    text.sections[0].value = format!("time: {}\nposition: {}, {}\nrotation: {}",
-                                     time.elapsed_seconds(),
-                                     game.player.i,
-                                     game.player.j,
-                                     game.player.rotation
-    );
+    if let Ok(mut text) = query.get_single_mut() {
+        text.sections[0].value = format!("time: {}\nposition: {}, {}\nrotation: {}",
+                                         time.elapsed_seconds(),
+                                         game.player.i,
+                                         game.player.j,
+                                         game.player.rotation
+        );
+    }
 }

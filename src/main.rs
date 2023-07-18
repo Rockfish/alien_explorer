@@ -14,26 +14,25 @@ mod lights;
 
 fn main() {
     App::new()
+        .add_plugins((DefaultPlugins, MaterialPlugin::<LineMaterial>::default()))
         .init_resource::<Game>()
         .insert_resource(CakeSpawnTimer(Timer::from_seconds(
             5.0,
             TimerMode::Repeating,
         )))
-        .add_plugins(DefaultPlugins)
-        .add_plugin(MaterialPlugin::<LineMaterial>::default())
         .add_state::<GameState>()
-        .add_startup_systems((
+        .add_systems(Startup, (
             setup_lines,
             setup_cylinders,
-            spawn_camera,
+            // spawn_camera,
             // spawn_light
         ))
-        .add_systems((
+        .add_systems(OnEnter(GameState::Playing), (
             //     setup_cameras.on_startup(),
-            scene_setup.in_schedule(OnEnter(GameState::Playing)),
+            scene_setup,
             display_system,
         ))
-        .add_systems( (
+        .add_systems(Update, (
                 move_player,
                 pan_orbit_camera,
                 circling_cake,
@@ -42,7 +41,7 @@ fn main() {
                 // scoreboard_system,
                 // spawn_bonus,
             )
-                .in_set(OnUpdate(GameState::Playing)),
+                .run_if(in_state(GameState::Playing)),
         )
         // .add_systems((
         //     teardown.in_schedule(OnExit(GameState::Playing)),
@@ -50,6 +49,6 @@ fn main() {
         //     gameover_keyboard.in_set(OnUpdate(GameState::GameOver)),
         //     teardown.in_schedule(OnExit(GameState::GameOver)),
         // ))
-        .add_system(bevy::window::close_on_esc)
+        .add_systems(Update, bevy::window::close_on_esc)
         .run();
 }

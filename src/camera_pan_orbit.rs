@@ -45,11 +45,11 @@ pub fn pan_orbit_camera(
     let mut scroll = 0.0;
     let mut orbit_button_changed = false;
 
-    if input_mouse.pressed(orbit_button) && !input_keyboard.pressed(KeyCode::LShift) {
+    if input_mouse.pressed(orbit_button) && !input_keyboard.pressed(KeyCode::ShiftLeft) {
         for ev in ev_motion.iter() {
             rotation_move += ev.delta;
         }
-    } else if input_mouse.pressed(orbit_button) && input_keyboard.pressed(KeyCode::LShift) {
+    } else if input_mouse.pressed(orbit_button) && input_keyboard.pressed(KeyCode::ShiftLeft) {
         // Pan only if we're not rotating at the moment
         for ev in ev_motion.iter() {
             pan += ev.delta;
@@ -129,7 +129,7 @@ pub fn pan_orbit_camera(
     }
 }
 
-pub fn spawn_camera(mut commands: Commands) {
+pub fn spawn_camera<'a>(mut commands: Commands<'a, 'a>, look_at: Vec3) -> Commands<'a, 'a> {
     info!("Spawning a controllable 3D perspective camera");
 
     let translation = Vec3::new(-2.0, 2.5, 5.0);
@@ -137,7 +137,7 @@ pub fn spawn_camera(mut commands: Commands) {
 
     commands.spawn((
         Camera3dBundle {
-            transform: Transform::from_translation(translation).looking_at(Vec3::ZERO, Vec3::Y),
+            transform: Transform::from_translation(translation).looking_at(look_at, Vec3::Y),
             ..Default::default()
         },
         PanOrbitCamera {
@@ -145,4 +145,5 @@ pub fn spawn_camera(mut commands: Commands) {
             ..Default::default()
         },
     ));
+    commands
 }

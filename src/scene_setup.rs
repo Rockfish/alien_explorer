@@ -1,6 +1,7 @@
 use std::f32::consts::PI;
 use rand::Rng;
 use bevy::prelude::*;
+use crate::camera_pan_orbit::spawn_camera;
 use crate::world::*;
 
 pub fn scene_setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMut<Game>) {
@@ -21,6 +22,14 @@ pub fn scene_setup(mut commands: Commands, asset_server: Res<AssetServer>, mut g
         },
         ..default()
     });
+
+    let look_at = Vec3::new(
+        game.player.i,
+        1.,
+        game.player.j
+    );
+
+    let mut commands = spawn_camera(commands, look_at);
 
     // spawn the game board
     let tile_scene = asset_server.load("models/tile.glb#Scene0");
@@ -47,14 +56,16 @@ pub fn scene_setup(mut commands: Commands, asset_server: Res<AssetServer>, mut g
             .spawn(SceneBundle {
                 transform: Transform {
                     translation: Vec3::new(
-                        game.player.i as f32,
+                        game.player.i,
                         game.board[game.player.j.round() as usize][game.player.i.round() as usize].height,
-                        game.player.j as f32,
+                        game.player.j,
                     ),
-                    rotation: Quat::from_rotation_y(-PI / 2.),
+                    rotation: Quat::from_rotation_y(-PI / 0.5),
                     ..default()
                 },
-                scene: asset_server.load("models/alien.glb#Scene0"),
+                //scene: asset_server.load("models/alien.glb#Scene0"),
+                scene: asset_server.load("/Users/john/Dev_Assets/sketchfab/astronaut_game_character_animated/scene.gltf#Scene0"),
+                // scene: asset_server.load("/Users/john/Dev_Assets/glTF-Sample-Models/2.0/CesiumMan/glTF/CesiumMan.gltf#Scene0"),
                 ..default()
             })
             .with_children(|children| {
@@ -72,16 +83,16 @@ pub fn scene_setup(mut commands: Commands, asset_server: Res<AssetServer>, mut g
             .id(),
     );
 
-    // load the scene for the cake
+    // load the scene for the Cake
     game.cake.handle = asset_server.load("models/cakeBirthday.glb#Scene0");
 
     game.cake.entity = Some(
         commands
             .spawn(SceneBundle {
                 transform: Transform::from_xyz(
-                    game.cake.i as f32,
+                    game.cake.i,
                     game.board[game.cake.j.round() as usize][game.cake.i.round() as usize].height + 0.2,
-                    game.cake.j as f32,
+                    game.cake.j,
                 ),
                 scene: game.cake.handle.clone(),
                 ..default()
@@ -102,23 +113,46 @@ pub fn scene_setup(mut commands: Commands, asset_server: Res<AssetServer>, mut g
     );
 
     // scoreboard
-    commands.spawn(
-        TextBundle::from_section(
-            "Score:",
-            TextStyle {
-                font: asset_server.load("fonts/FiraSans-Bold.ttf"),
-                font_size: 40.0,
-                color: Color::rgb(0.5, 0.5, 1.0),
+    // commands.spawn(
+    //     TextBundle::from_section(
+    //         "Score:",
+    //         TextStyle {
+    //             font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+    //             font_size: 40.0,
+    //             color: Color::rgb(0.5, 0.5, 1.0),
+    //         },
+    //     )
+    //         .with_style(Style {
+    //             position_type: PositionType::Absolute,
+    //             position: UiRect {
+    //                 top: Val::Px(5.0),
+    //                 left: Val::Px(5.0),
+    //                 ..default()
+    //             },
+    //             ..default()
+    //         }),
+    // );
+    commands
+        .spawn(NodeBundle {
+            style: Style {
+                // position_type: PositionType::Absolute,
+                width: Val::Percent(100.),
+                align_items: AlignItems::Start,
+                justify_content: JustifyContent::Start,
+                ..default()
             },
+            ..default()
+        }
         )
-            .with_style(Style {
-                position_type: PositionType::Absolute,
-                position: UiRect {
-                    top: Val::Px(5.0),
-                    left: Val::Px(5.0),
+        .with_children(|parent| {
+            parent.spawn(TextBundle::from_section(
+                format!("Score: {}", game.cake_eaten),
+                TextStyle {
+                    font: asset_server.load("fonts/FiraSans-Bold.ttf"),
+                    font_size: 40.0,
+                    color: Color::rgb(0.5, 0.5, 1.0),
                     ..default()
                 },
-                ..default()
-            }),
-    );
+            ));
+        });
 }
