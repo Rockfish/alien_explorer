@@ -45,11 +45,11 @@ pub struct Game {
 pub const BOARD_SIZE_I: f32 = 14.0;
 pub const BOARD_SIZE_J: f32 = 21.0;
 
-pub const RESET_FOCUS: [f32; 3] = [
-    BOARD_SIZE_I / 2.0,
-    0.0,
-    BOARD_SIZE_J / 2.0 - 0.5,
-];
+// pub const RESET_FOCUS: [f32; 3] = [
+//     BOARD_SIZE_I / 2.0,
+//     0.0,
+//     BOARD_SIZE_J / 2.0 - 0.5,
+// ];
 
 pub fn setup_game_state(mut game: ResMut<Game>) {
     info!("Setting up game state");

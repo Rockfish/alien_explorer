@@ -7,7 +7,7 @@ use std::f32::consts::PI;
 use crate::camera_pan_orbit::PanOrbitCamera;
 use crate::game_state::*;
 
-pub fn spawn_camera(mut commands: Commands, mut game: ResMut<Game>) {
+pub fn spawn_camera(mut commands: Commands, game: Res<Game>) {
     info!("Spawning a controllable 3D perspective camera");
 
     let look_at = Vec3::new(
@@ -31,7 +31,7 @@ pub fn spawn_camera(mut commands: Commands, mut game: ResMut<Game>) {
     ));
 }
 
-pub fn spawn_directional_light(mut commands: Commands) {
+pub fn _spawn_directional_light(mut commands: Commands) {
     info!("Spawning directional 'sun' light");
 
     commands.spawn(DirectionalLightBundle {
@@ -163,7 +163,7 @@ pub fn spawn_cake(mut commands: Commands, asset_server: Res<AssetServer>, mut ga
     );
 }
 
-pub fn spawn_cake_two(
+pub fn _spawn_cake_two(
     time: Res<Time>,
     mut timer: ResMut<CakeSpawnTimer>,
     // mut next_state: ResMut<NextState<GameState>>,
@@ -222,7 +222,7 @@ pub fn spawn_cake_two(
     );
 }
 
-pub fn spawn_scoreboard(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMut<Game>) {
+pub fn spawn_scoreboard(mut commands: Commands, asset_server: Res<AssetServer>) {
     info!("Spawning scoreboard");
 
     // scoreboard
@@ -259,12 +259,12 @@ pub fn spawn_scoreboard(mut commands: Commands, asset_server: Res<AssetServer>, 
         )
         .with_children(|parent| {
             parent.spawn(TextBundle::from_section(
-                format!("Score: {}", game.cake_eaten),
+                // format!("Score: {}", game.cake_eaten),
+                "Something",
                 TextStyle {
                     font: asset_server.load("fonts/FiraSans-Bold.ttf"),
                     font_size: 40.0,
                     color: Color::rgb(0.5, 0.5, 1.0),
-                    ..default()
                 },
             ));
         });

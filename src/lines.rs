@@ -73,7 +73,7 @@ pub fn spawn_lines(
     // });
 }
 
-const X_EXTENT: f32 = 14.;
+// const X_EXTENT: f32 = 14.;
 
 pub fn spawn_cylinders(
     mut commands: Commands,

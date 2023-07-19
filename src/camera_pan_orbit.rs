@@ -1,7 +1,10 @@
+#![allow(clippy::assign_op_pattern)]
+
 // use bevy::input::keyboard::KeyboardInput;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 use bevy::render::camera::Projection;
+
 use bevy::window::*;
 
 // ANCHOR: example
@@ -91,8 +94,9 @@ pub fn pan_orbit_camera(
             let yaw = Quat::from_rotation_y(-delta_x);
             let pitch = Quat::from_rotation_x(-delta_y);
 
-            transform.rotation = yaw * transform.rotation; // rotate around global y axis
+            transform.rotation = yaw * transform.rotation; // rotate around global y axis (order of operation matters)
             transform.rotation = transform.rotation * pitch; // rotate around local x axis
+
         } else if pan.length_squared() > 0.0 {
             any = true;
 
