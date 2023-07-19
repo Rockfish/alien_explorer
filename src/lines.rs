@@ -13,7 +13,7 @@ use bevy::{
 };
 use crate::cylinder::Cylinder;
 
-pub fn setup_lines(
+pub fn spawn_lines(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<LineMaterial>>,
@@ -75,7 +75,7 @@ pub fn setup_lines(
 
 const X_EXTENT: f32 = 14.;
 
-pub fn setup_cylinders(
+pub fn spawn_cylinders(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,

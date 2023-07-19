@@ -1,16 +1,64 @@
-use std::f32::consts::PI;
-use rand::Rng;
 use bevy::prelude::*;
-use crate::camera_pan_orbit::spawn_camera;
-use crate::world::*;
+use bevy::pbr::CascadeShadowConfigBuilder;
 
-pub fn scene_setup(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMut<Game>) {
-    // reset the game state
-    game.cake_eaten = 0;
-    game.score = 0;
-    game.player.i = BOARD_SIZE_I / 2.0;
-    game.player.j = BOARD_SIZE_J / 2.0;
-    game.player.move_cooldown = Timer::from_seconds(0.1, TimerMode::Once);
+use rand::Rng;
+use std::f32::consts::PI;
+
+use crate::camera_pan_orbit::PanOrbitCamera;
+use crate::game_state::*;
+
+pub fn spawn_camera(mut commands: Commands, mut game: ResMut<Game>) {
+    info!("Spawning a controllable 3D perspective camera");
+
+    let look_at = Vec3::new(
+        game.player.i,
+        1.,
+        game.player.j
+    );
+
+    let translation = Vec3::new(-2.0, 2.5, 5.0);
+    let radius = translation.length();
+
+    commands.spawn((
+        Camera3dBundle {
+            transform: Transform::from_translation(translation).looking_at(look_at, Vec3::Y),
+            ..Default::default()
+        },
+        PanOrbitCamera {
+            radius,
+            ..Default::default()
+        },
+    ));
+}
+
+pub fn spawn_directional_light(mut commands: Commands) {
+    info!("Spawning directional 'sun' light");
+
+    commands.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            shadows_enabled: true,
+            ..default()
+        },
+        transform: Transform {
+            translation: Vec3::new(0.0, 2.0, 0.0),
+            rotation: Quat::from_rotation_x(-PI / 4.),
+            ..default()
+        },
+        // The default cascade config is designed to handle large scenes.
+        // As this example has a much smaller world, we can tighten the shadow
+        // bounds for better visual quality.
+        cascade_shadow_config: CascadeShadowConfigBuilder {
+            first_cascade_far_bound: 4.0,
+            maximum_distance: 10.0,
+            ..default()
+        }
+            .into(),
+        ..default()
+    });
+}
+
+pub fn spawn_point_light(mut commands: Commands) {
+    info!("Spawning point light");
 
     commands.spawn(PointLightBundle {
         transform: Transform::from_xyz(4.0, 10.0, 4.0),
@@ -22,14 +70,10 @@ pub fn scene_setup(mut commands: Commands, asset_server: Res<AssetServer>, mut g
         },
         ..default()
     });
+}
 
-    let look_at = Vec3::new(
-        game.player.i,
-        1.,
-        game.player.j
-    );
-
-    let mut commands = spawn_camera(commands, look_at);
+pub fn spawn_game_board(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMut<Game>) {
+    info!("Spawning game board");
 
     // spawn the game board
     let tile_scene = asset_server.load("models/tile.glb#Scene0");
@@ -49,8 +93,11 @@ pub fn scene_setup(mut commands: Commands, asset_server: Res<AssetServer>, mut g
                 .collect()
         })
         .collect();
+}
 
-    // spawn the game character
+pub fn spawn_character(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMut<Game>) {
+    info!("Spawning character");
+
     game.player.entity = Some(
         commands
             .spawn(SceneBundle {
@@ -82,8 +129,11 @@ pub fn scene_setup(mut commands: Commands, asset_server: Res<AssetServer>, mut g
             })
             .id(),
     );
+}
 
-    // load the scene for the Cake
+pub fn spawn_cake(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMut<Game>) {
+    info!("Spawning cake");
+
     game.cake.handle = asset_server.load("models/cakeBirthday.glb#Scene0");
 
     game.cake.entity = Some(
@@ -111,6 +161,69 @@ pub fn scene_setup(mut commands: Commands, asset_server: Res<AssetServer>, mut g
             })
             .id(),
     );
+}
+
+pub fn spawn_cake_two(
+    time: Res<Time>,
+    mut timer: ResMut<CakeSpawnTimer>,
+    // mut next_state: ResMut<NextState<GameState>>,
+    mut commands: Commands,
+    mut game: ResMut<Game>,
+) {
+    info!("Spawning random cake");
+
+    // make sure we wait enough time before spawning the next Cake
+    if !timer.0.tick(time.delta()).finished() {
+        return;
+    }
+
+    if let Some(entity) = game.cake.entity {
+        game.score -= 3;
+        commands.entity(entity).despawn_recursive();
+        game.cake.entity = None;
+        // if game.score <= -5 {
+        //     next_state.set(GameState::GameOver);
+        //     return;
+        // }
+    }
+
+    // ensure Cake doesn't spawn on the player
+    loop {
+        game.cake.i = rand::thread_rng().gen_range(0..BOARD_SIZE_I.round() as usize) as f32;
+        game.cake.j = rand::thread_rng().gen_range(0..BOARD_SIZE_J.round() as usize) as f32;
+        if game.cake.i != game.player.i || game.cake.j != game.player.j {
+            break;
+        }
+    }
+    game.cake.entity = Some(
+        commands
+            .spawn(SceneBundle {
+                transform: Transform::from_xyz(
+                    game.cake.i,
+                    game.board[game.cake.j.round() as usize][game.cake.i.round() as usize].height + 0.2,
+                    game.cake.j,
+                ),
+                scene: game.cake.handle.clone(),
+                ..default()
+            })
+            .with_children(|children| {
+                children.spawn(PointLightBundle {
+                    point_light: PointLight {
+                        color: Color::rgb(1.0, 1.0, 0.0),
+                        intensity: 1000.0,
+                        range: 10.0,
+                        ..default()
+                    },
+                    transform: Transform::from_xyz(0.0, 2.0, 0.0),
+                    ..default()
+                });
+            })
+            .id(),
+    );
+}
+
+pub fn spawn_scoreboard(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMut<Game>) {
+    info!("Spawning scoreboard");
 
     // scoreboard
     // commands.spawn(
@@ -156,3 +269,4 @@ pub fn scene_setup(mut commands: Commands, asset_server: Res<AssetServer>, mut g
             ));
         });
 }
+

@@ -24,6 +24,7 @@ impl Default for PanOrbitCamera {
     }
 }
 
+
 /// Pan the camera with middle mouse click, zoom with scroll wheel, orbit with right mouse click.
 pub fn pan_orbit_camera(
     primary_query: Query<&Window, With<PrimaryWindow>>,
@@ -129,21 +130,3 @@ pub fn pan_orbit_camera(
     }
 }
 
-pub fn spawn_camera<'a>(mut commands: Commands<'a, 'a>, look_at: Vec3) -> Commands<'a, 'a> {
-    info!("Spawning a controllable 3D perspective camera");
-
-    let translation = Vec3::new(-2.0, 2.5, 5.0);
-    let radius = translation.length();
-
-    commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_translation(translation).looking_at(look_at, Vec3::Y),
-            ..Default::default()
-        },
-        PanOrbitCamera {
-            radius,
-            ..Default::default()
-        },
-    ));
-    commands
-}
