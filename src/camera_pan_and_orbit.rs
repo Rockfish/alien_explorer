@@ -1,4 +1,5 @@
 #![allow(clippy::assign_op_pattern)]
+#![allow(dead_code)]
 
 // use bevy::input::keyboard::KeyboardInput;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
@@ -69,6 +70,7 @@ pub fn pan_orbit_camera(
     }
 
     for (mut pan_orbit, mut transform, projection) in query.iter_mut() {
+
         if orbit_button_changed {
             // only check for upside down when orbiting started or ended this frame
             // if the camera is "upside" down, panning horizontally would be inverted, so invert the input to make it correct
@@ -77,6 +79,7 @@ pub fn pan_orbit_camera(
         }
 
         let mut any = false;
+
         if rotation_move.length_squared() > 0.0 {
             any = true;
 
@@ -115,6 +118,7 @@ pub fn pan_orbit_camera(
             // make panning proportional to distance away from focus point
             let translation = (right + up) * pan_orbit.radius;
             pan_orbit.focus += translation;
+
         } else if scroll.abs() > 0.0 {
             any = true;
 
@@ -128,6 +132,7 @@ pub fn pan_orbit_camera(
             // parent = x and y rotation
             // child = z-offset
             let rot_matrix = Mat3::from_quat(transform.rotation);
+
             transform.translation =
                 pan_orbit.focus + rot_matrix.mul_vec3(Vec3::new(0.0, 0.0, pan_orbit.radius));
         }

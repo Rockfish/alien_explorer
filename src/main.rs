@@ -1,17 +1,25 @@
+#![allow(unused_imports)]
+
 use bevy::prelude::*;
-use crate::camera_pan_orbit::*;
+use crate::cake::*;
+use crate::camera_pan_and_orbit::*;
+use crate::camera_tracking::*;
+use crate::display::*;
 use crate::lines::*;
-use crate::update::*;
+use crate::player::*;
 use crate::spawn::*;
 use crate::game_state::*;
 
-mod camera_pan_orbit;
+mod camera_tracking;
 mod lines;
 mod cylinder;
-mod update;
+mod player;
 mod game_state;
 mod lights;
 mod spawn;
+mod camera_pan_and_orbit;
+mod cake;
+mod display;
 
 fn main() {
     App::new()
@@ -38,14 +46,14 @@ fn main() {
             // update_display,
         // ))
         .add_systems(Update, (
-                move_player,
-                pan_orbit_camera,
-                circling_cake,
-                update_display.after(move_player),
-                // focus_camera,
-                // rotate_bonus,
-                // scoreboard_system,
-                // spawn_bonus,
+            move_player,
+            update_tracking_camera,
+            update_cake,
+            update_display.after(move_player),
+            // focus_camera,
+            // rotate_bonus,
+            // scoreboard_system,
+            // spawn_bonus,
             )
                 .run_if(in_state(GameState::Playing)),
         )

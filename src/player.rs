@@ -8,7 +8,7 @@ pub fn move_player(
     mut commands: Commands,
     keyboard_input: Res<Input<KeyCode>>,
     mut game: ResMut<Game>,
-    mut transforms: Query<&mut Transform>,
+    mut transforms_query: Query<&mut Transform>,
     time: Res<Time>,
 ) {
     if game.player.move_cooldown.tick(time.delta()).finished() {
@@ -47,7 +47,8 @@ pub fn move_player(
         // move on the board
         if moved {
             game.player.move_cooldown.reset();
-            *transforms.get_mut(game.player.entity.unwrap()).unwrap() = Transform {
+
+            let new_player_transform = Transform {
                 translation: Vec3::new(
                     game.player.i,
                     game.board[game.player.j.round() as usize][game.player.i.round() as usize].height,
@@ -56,57 +57,28 @@ pub fn move_player(
                 rotation: Quat::from_rotation_y(game.player.rotation),
                 ..default()
             };
+
+            // let player_entity = game.player.entity.unwrap();
+            // *transforms_query.get_mut(player_entity).unwrap() = new_player_transform;
+            // let mut player_transform = transforms_query.get_mut(player_entity).unwrap();
+            // *player_transform = new_player_transform;
+
+            if let Some(player_entity) = game.player.entity {
+                if let Ok(mut player_transform) = transforms_query.get_mut(player_entity) {
+                    *player_transform = new_player_transform;
+                }
+            }
         }
     }
 
     // eat the Cake!
-    if let Some(entity) = game.cake.entity {
+    if let Some(cake_entity) = game.cake.entity {
         if game.player.i == game.cake.i && game.player.j == game.cake.j {
             game.score += 2;
             game.cake_eaten += 1;
-            commands.entity(entity).despawn_recursive();
+            commands.entity(cake_entity).despawn_recursive();
             game.cake.entity = None;
         }
     }
 }
 
-pub fn circling_cake (
-    time: Res<Time>,
-    mut game: ResMut<Game>,
-    mut transforms: Query<&mut Transform>,
-) {
-
-    let x = (BOARD_SIZE_I - 2.0) / 2.0;
-    let y = (BOARD_SIZE_J - 2.0) / 2.0;
-
-    game.cake.i = (time.elapsed_seconds() * 0.4).sin() * x + x + 1.0;
-    game.cake.j = (time.elapsed_seconds() * 0.4).cos() * y + y + 1.0;
-
-    *transforms.get_mut(game.cake.entity.unwrap()).unwrap() = Transform {
-        translation: Vec3::new(
-            game.cake.i,
-            0.4,
-            game.cake.j,
-        ),
-        // rotation: Quat::from_rotation_y(rotation),
-        ..default()
-    };
-}
-
-// update the score displayed during the game
-pub fn update_display(
-    time: Res<Time>,
-    game: Res<Game>,
-    mut query: Query<&mut Text>
-) {
-    // info!("Updating display");
-
-    if let Ok(mut text) = query.get_single_mut() {
-        text.sections[0].value = format!("time: {}\nposition: {}, {}\nrotation: {}",
-                                         time.elapsed_seconds(),
-                                         game.player.i,
-                                         game.player.j,
-                                         game.player.rotation
-        );
-    }
-}

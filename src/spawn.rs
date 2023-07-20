@@ -4,7 +4,8 @@ use bevy::pbr::CascadeShadowConfigBuilder;
 use rand::Rng;
 use std::f32::consts::PI;
 
-use crate::camera_pan_orbit::PanOrbitCamera;
+// use crate::camera_pan_and_orbit::PanOrbitCamera;
+use crate::camera_tracking::TrackingCamera;
 use crate::game_state::*;
 
 pub fn spawn_camera(mut commands: Commands, game: Res<Game>) {
@@ -24,7 +25,7 @@ pub fn spawn_camera(mut commands: Commands, game: Res<Game>) {
             transform: Transform::from_translation(translation).looking_at(look_at, Vec3::Y),
             ..Default::default()
         },
-        PanOrbitCamera {
+        TrackingCamera {
             radius,
             ..Default::default()
         },
@@ -98,6 +99,11 @@ pub fn spawn_game_board(mut commands: Commands, asset_server: Res<AssetServer>, 
 pub fn spawn_character(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMut<Game>) {
     info!("Spawning character");
 
+    //scene: asset_server.load("models/alien.glb#Scene0"),
+    // scene: asset_server.load("/Users/john/Dev_Assets/glTF-Sample-Models/2.0/CesiumMan/glTF/CesiumMan.gltf#Scene0"),
+
+    let character_asset = asset_server.load("/Users/john/Dev_Assets/sketchfab/astronaut_game_character_animated/astro_scene.glb#Scene0");
+
     game.player.entity = Some(
         commands
             .spawn(SceneBundle {
@@ -110,9 +116,7 @@ pub fn spawn_character(mut commands: Commands, asset_server: Res<AssetServer>, m
                     rotation: Quat::from_rotation_y(-PI / 0.5),
                     ..default()
                 },
-                //scene: asset_server.load("models/alien.glb#Scene0"),
-                scene: asset_server.load("/Users/john/Dev_Assets/sketchfab/astronaut_game_character_animated/scene.gltf#Scene0"),
-                // scene: asset_server.load("/Users/john/Dev_Assets/glTF-Sample-Models/2.0/CesiumMan/glTF/CesiumMan.gltf#Scene0"),
+                scene: character_asset,
                 ..default()
             })
             .with_children(|children| {
