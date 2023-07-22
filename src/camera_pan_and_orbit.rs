@@ -5,6 +5,7 @@
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 use bevy::render::camera::Projection;
+use std::f32::consts::PI;
 
 use bevy::window::*;
 
@@ -27,7 +28,6 @@ impl Default for PanOrbitCamera {
         }
     }
 }
-
 
 /// Pan the camera with middle mouse click, zoom with scroll wheel, orbit with right mouse click.
 pub fn pan_orbit_camera(
@@ -70,7 +70,6 @@ pub fn pan_orbit_camera(
     }
 
     for (mut pan_orbit, mut transform, projection) in query.iter_mut() {
-
         if orbit_button_changed {
             // only check for upside down when orbiting started or ended this frame
             // if the camera is "upside" down, panning horizontally would be inverted, so invert the input to make it correct
@@ -84,7 +83,7 @@ pub fn pan_orbit_camera(
             any = true;
 
             let delta_x = {
-                let delta = rotation_move.x / primary.width() * std::f32::consts::PI * 2.0;
+                let delta = rotation_move.x / primary.width() * PI * 2.0;
                 if pan_orbit.upside_down {
                     -delta
                 } else {
@@ -92,14 +91,13 @@ pub fn pan_orbit_camera(
                 }
             };
 
-            let delta_y = rotation_move.y / primary.height() * std::f32::consts::PI;
+            let delta_y = rotation_move.y / primary.height() * PI;
 
             let yaw = Quat::from_rotation_y(-delta_x);
             let pitch = Quat::from_rotation_x(-delta_y);
 
             transform.rotation = yaw * transform.rotation; // rotate around global y axis (order of operation matters)
             transform.rotation = transform.rotation * pitch; // rotate around local x axis
-
         } else if pan.length_squared() > 0.0 {
             any = true;
 
@@ -118,7 +116,6 @@ pub fn pan_orbit_camera(
             // make panning proportional to distance away from focus point
             let translation = (right + up) * pan_orbit.radius;
             pan_orbit.focus += translation;
-
         } else if scroll.abs() > 0.0 {
             any = true;
 
@@ -138,4 +135,3 @@ pub fn pan_orbit_camera(
         }
     }
 }
-

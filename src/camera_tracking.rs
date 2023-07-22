@@ -5,11 +5,12 @@
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 use bevy::render::camera::Projection;
+use std::f32::consts::PI;
 
+use crate::game_state::Game;
 use bevy::window::*;
 
-// ANCHOR: example
-/// Tags an entity as capable of panning and orbiting.
+/// Tags an entity as tracking camera
 #[derive(Component)]
 pub struct TrackingCamera {
     /// The "focus point" to orbit around. It is automatically updated when panning the camera
@@ -31,11 +32,13 @@ impl Default for TrackingCamera {
 /// Pan the camera with middle mouse click, zoom with scroll wheel, orbit with right mouse click.
 pub fn update_tracking_camera(
     primary_query: Query<&Window, With<PrimaryWindow>>,
-    mut ev_motion: EventReader<MouseMotion>,
-    mut ev_scroll: EventReader<MouseWheel>,
+    mut ev_mouse_motion: EventReader<MouseMotion>,
+    mut ev_mouse_scroll: EventReader<MouseWheel>,
+    keyboard_input: Res<Input<KeyCode>>,
     input_mouse: Res<Input<MouseButton>>,
     input_keyboard: Res<Input<KeyCode>>,
     mut query: Query<(&mut TrackingCamera, &mut Transform, &Projection)>,
+    game: Res<Game>,
 ) {
     // if let Ok(primary) = primary_query.get_single();
     let primary = primary_query.get_single().unwrap();
@@ -50,18 +53,18 @@ pub fn update_tracking_camera(
     let mut orbit_button_changed = false;
 
     if input_mouse.pressed(orbit_button) && !input_keyboard.pressed(KeyCode::ShiftLeft) {
-        for ev in ev_motion.iter() {
-            rotation_move += ev.delta;
+        for mouse_motion in ev_mouse_motion.iter() {
+            rotation_move += mouse_motion.delta;
         }
     } else if input_mouse.pressed(orbit_button) && input_keyboard.pressed(KeyCode::ShiftLeft) {
         // Pan only if we're not rotating at the moment
-        for ev in ev_motion.iter() {
-            pan += ev.delta * 2.0;
+        for mouse_motion in ev_mouse_motion.iter() {
+            pan += mouse_motion.delta * 2.0;
         }
     }
 
-    for ev in ev_scroll.iter() {
-        scroll += ev.y * 0.05;
+    for mouse_wheel in ev_mouse_scroll.iter() {
+        scroll += mouse_wheel.y * 0.05;
     }
 
     if input_mouse.just_released(orbit_button) || input_mouse.just_pressed(orbit_button) {
@@ -69,7 +72,6 @@ pub fn update_tracking_camera(
     }
 
     for (mut tracking_camera, mut transform, projection) in query.iter_mut() {
-
         if orbit_button_changed {
             // only check for upside down when orbiting started or ended this frame
             // if the camera is "upside" down, panning horizontally would be inverted, so invert the input to make it correct
@@ -83,7 +85,7 @@ pub fn update_tracking_camera(
             any = true;
 
             let delta_x = {
-                let delta = rotation_move.x / primary.width() * std::f32::consts::PI * 2.0;
+                let delta = rotation_move.x / primary.width() * PI * 2.0;
                 if tracking_camera.upside_down {
                     -delta
                 } else {
@@ -91,14 +93,16 @@ pub fn update_tracking_camera(
                 }
             };
 
-            let delta_y = rotation_move.y / primary.height() * std::f32::consts::PI;
+            let delta_y = rotation_move.y / primary.height() * PI;
 
             let yaw = Quat::from_rotation_y(-delta_x);
             let pitch = Quat::from_rotation_x(-delta_y);
 
-            transform.rotation = yaw * transform.rotation; // rotate around global y axis (order of operation matters)
-            transform.rotation = transform.rotation * pitch; // rotate around local x axis
+            // rotate around global y axis (order of operation matters)
+            transform.rotation = yaw * transform.rotation;
 
+            // rotate around local x axis
+            transform.rotation = transform.rotation * pitch;
         } else if pan.length_squared() > 0.0 {
             any = true;
 
@@ -114,10 +118,18 @@ pub fn update_tracking_camera(
             let right = transform.rotation * Vec3::X * -pan.x;
             let up = transform.rotation * Vec3::Y * pan.y;
 
+            // println!("camera right axes: {right}");
+            // println!("camera up axes: {up}");
+            let axes_sum = right + up;
+            println!("camera right + up axes: {axes_sum}");
+
             // make panning proportional to distance away from focus point
             let translation = (right + up) * tracking_camera.radius;
             tracking_camera.focus += translation;
 
+            // let focus = tracking_camera.focus;
+            //
+            // println!("camera focus: {focus}");
         } else if scroll.abs() > 0.0 {
             any = true;
 
@@ -132,9 +144,30 @@ pub fn update_tracking_camera(
             // child = z-offset
             let rot_matrix = Mat3::from_quat(transform.rotation);
 
-            transform.translation =
-                tracking_camera.focus + rot_matrix.mul_vec3(Vec3::new(0.0, 0.0, tracking_camera.radius));
+            transform.translation = tracking_camera.focus
+                + rot_matrix.mul_vec3(Vec3::new(0.0, 0.0, tracking_camera.radius));
+        }
+
+        if keyboard_input.any_pressed(vec![
+            KeyCode::Up,
+            KeyCode::Down,
+            KeyCode::Right,
+            KeyCode::Left,
+        ]) {
+            println!("key pressed");
+            let target = Vec3::new(game.player.i, 1., game.player.j);
+            transform.rotation = look_to(target - transform.translation, Vec3::Y);
         }
     }
 }
 
+pub fn look_to(direction: Vec3, up: Vec3) -> Quat {
+    let back = -direction.try_normalize().unwrap_or(Vec3::NEG_Z);
+    let up = up.try_normalize().unwrap_or(Vec3::Y);
+    let right = up
+        .cross(back)
+        .try_normalize()
+        .unwrap_or_else(|| up.any_orthonormal_vector());
+    let up = back.cross(right);
+    Quat::from_mat3(&Mat3::from_cols(right, up, back))
+}

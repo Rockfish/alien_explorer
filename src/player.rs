@@ -1,7 +1,6 @@
-use std::f32::consts::PI;
-use bevy::prelude::*;
 use crate::game_state::*;
-
+use bevy::prelude::*;
+use std::f32::consts::PI;
 
 // control the game character
 pub fn move_player(
@@ -11,34 +10,36 @@ pub fn move_player(
     mut transforms_query: Query<&mut Transform>,
     time: Res<Time>,
 ) {
+    let move_step = 0.1;
+
     if game.player.move_cooldown.tick(time.delta()).finished() {
         let mut moved = false;
         // let mut rotation = 0.0;
 
         if keyboard_input.pressed(KeyCode::Up) {
             if game.player.i < BOARD_SIZE_I - 1.0 {
-                game.player.i += 0.25;
+                game.player.i += move_step;
             }
             game.player.rotation = PI / 2.;
             moved = true;
         }
         if keyboard_input.pressed(KeyCode::Down) {
             if game.player.i > 0.0 {
-                game.player.i -= 0.25;
+                game.player.i -= move_step;
             }
             game.player.rotation = -PI / 2.;
             moved = true;
         }
         if keyboard_input.pressed(KeyCode::Right) {
             if game.player.j < BOARD_SIZE_J - 1.0 {
-                game.player.j += 0.25;
+                game.player.j += move_step;
             }
             game.player.rotation = 0.0;
             moved = true;
         }
         if keyboard_input.pressed(KeyCode::Left) {
             if game.player.j > 0.0 {
-                game.player.j -= 0.25;
+                game.player.j -= move_step;
             }
             game.player.rotation = PI;
             moved = true;
@@ -51,7 +52,8 @@ pub fn move_player(
             let new_player_transform = Transform {
                 translation: Vec3::new(
                     game.player.i,
-                    game.board[game.player.j.round() as usize][game.player.i.round() as usize].height,
+                    game.board[game.player.j.round() as usize][game.player.i.round() as usize]
+                        .height,
                     game.player.j,
                 ),
                 rotation: Quat::from_rotation_y(game.player.rotation),
@@ -81,4 +83,3 @@ pub fn move_player(
         }
     }
 }
-

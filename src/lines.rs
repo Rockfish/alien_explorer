@@ -1,8 +1,8 @@
-use std::f32::consts::PI;
+use crate::cylinder::Cylinder;
 use bevy::{
-    prelude::*,
     pbr::{MaterialPipeline, MaterialPipelineKey},
-    reflect::{TypeUuid, TypePath},
+    prelude::*,
+    reflect::{TypePath, TypeUuid},
     render::{
         mesh::{MeshVertexBufferLayout, PrimitiveTopology},
         render_resource::{
@@ -11,7 +11,7 @@ use bevy::{
         },
     },
 };
-use crate::cylinder::Cylinder;
+use std::f32::consts::PI;
 
 pub fn spawn_lines(
     mut commands: Commands,
@@ -26,31 +26,27 @@ pub fn spawn_lines(
                 (Vec3::new(1.0, 0.02, 0.0), Vec3::new(1.0, -0.02, 0.0)),
             ],
         })),
-        material: materials.add(LineMaterial { color: Color::RED, }),
+        material: materials.add(LineMaterial { color: Color::RED }),
         ..default()
     });
 
     commands.spawn(MaterialMeshBundle {
         mesh: meshes.add(Mesh::from(LineList {
-            lines: vec![
-                (Vec3::ZERO, Vec3::new(0.0, 5.0, 0.0)),
-            ],
+            lines: vec![(Vec3::ZERO, Vec3::new(0.0, 5.0, 0.0))],
         })),
-        material: materials.add(LineMaterial { color: Color::GREEN, }),
+        material: materials.add(LineMaterial {
+            color: Color::GREEN,
+        }),
         ..default()
     });
 
     commands.spawn(MaterialMeshBundle {
         mesh: meshes.add(Mesh::from(LineList {
-            lines: vec![
-                (Vec3::ZERO, Vec3::new(0.0, 0.0, 5.0)),
-            ],
+            lines: vec![(Vec3::ZERO, Vec3::new(0.0, 0.0, 5.0))],
         })),
-        material: materials.add(LineMaterial { color: Color::BLUE, }),
+        material: materials.add(LineMaterial { color: Color::BLUE }),
         ..default()
     });
-
-
 
     // // Spawn a line strip that goes from point to point
     // commands.spawn(MaterialMeshBundle {
@@ -81,49 +77,41 @@ pub fn spawn_cylinders(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     commands.spawn(MaterialMeshBundle {
-        mesh: meshes.add(Mesh::from(
-            Cylinder {
-                radius: 0.04,
-                height: 2.0,
-                resolution: 20,
-                segments: 10,
-            }
-        )),
+        mesh: meshes.add(Mesh::from(Cylinder {
+            radius: 0.04,
+            height: 2.0,
+            resolution: 20,
+            segments: 10,
+        })),
         material: materials.add(Color::rgb(0.63, 0.96, 0.26).into()), // greenish - y up
-        transform: Transform::from_xyz( 0.0, 1.0, 0.0, ),
-            // .with_rotation(Quat::from_rotation_x(-PI / 4.)),
+        transform: Transform::from_xyz(0.0, 1.0, 0.0),
+        // .with_rotation(Quat::from_rotation_x(-PI / 4.)),
         ..default()
     });
 
     commands.spawn(MaterialMeshBundle {
-        mesh: meshes.add(Mesh::from(
-            Cylinder {
-                radius: 0.04,
-                height: 2.0,
-                resolution: 20,
-                segments: 10,
-            }
-        )),
+        mesh: meshes.add(Mesh::from(Cylinder {
+            radius: 0.04,
+            height: 2.0,
+            resolution: 20,
+            segments: 10,
+        })),
         // material: materials.add(LineMaterial { color: Color::YELLOW, }),
         material: materials.add(Color::rgb(0.96, 0.20, 0.20).into()), // redish - x right
-        transform: Transform::from_xyz( 1.0, 0.0, 0.0, )
-            .with_rotation(Quat::from_rotation_z(PI / 2.)),
+        transform: Transform::from_xyz(1.0, 0.0, 0.0).with_rotation(Quat::from_rotation_z(PI / 2.)),
         ..default()
     });
 
     commands.spawn(MaterialMeshBundle {
-        mesh: meshes.add(Mesh::from(
-            Cylinder {
-                radius: 0.04,
-                height: 2.0,
-                resolution: 20,
-                segments: 10,
-            }
-        )),
+        mesh: meshes.add(Mesh::from(Cylinder {
+            radius: 0.04,
+            height: 2.0,
+            resolution: 20,
+            segments: 10,
+        })),
         // material: materials.add(LineMaterial { color: Color::YELLOW, }),
         material: materials.add(Color::rgb(0.20, 0.20, 0.96).into()), // bluish z - out
-        transform: Transform::from_xyz( 0.0, 0.0, 1.0, )
-            .with_rotation(Quat::from_rotation_x(PI / 2.)),
+        transform: Transform::from_xyz(0.0, 0.0, 1.0).with_rotation(Quat::from_rotation_x(PI / 2.)),
         ..default()
     });
 }

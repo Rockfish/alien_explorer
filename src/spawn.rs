@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use bevy::pbr::CascadeShadowConfigBuilder;
+use bevy::prelude::*;
 
 use rand::Rng;
 use std::f32::consts::PI;
@@ -11,11 +11,7 @@ use crate::game_state::*;
 pub fn spawn_camera(mut commands: Commands, game: Res<Game>) {
     info!("Spawning a controllable 3D perspective camera");
 
-    let look_at = Vec3::new(
-        game.player.i,
-        1.,
-        game.player.j
-    );
+    let look_at = Vec3::new(game.player.i, 1., game.player.j);
 
     let translation = Vec3::new(-2.0, 2.5, 5.0);
     let radius = translation.length();
@@ -53,7 +49,7 @@ pub fn _spawn_directional_light(mut commands: Commands) {
             maximum_distance: 10.0,
             ..default()
         }
-            .into(),
+        .into(),
         ..default()
     });
 }
@@ -73,7 +69,11 @@ pub fn spawn_point_light(mut commands: Commands) {
     });
 }
 
-pub fn spawn_game_board(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMut<Game>) {
+pub fn spawn_game_board(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut game: ResMut<Game>,
+) {
     info!("Spawning game board");
 
     // spawn the game board
@@ -96,13 +96,19 @@ pub fn spawn_game_board(mut commands: Commands, asset_server: Res<AssetServer>, 
         .collect();
 }
 
-pub fn spawn_character(mut commands: Commands, asset_server: Res<AssetServer>, mut game: ResMut<Game>) {
+pub fn spawn_character(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut game: ResMut<Game>,
+) {
     info!("Spawning character");
 
     //scene: asset_server.load("models/alien.glb#Scene0"),
     // scene: asset_server.load("/Users/john/Dev_Assets/glTF-Sample-Models/2.0/CesiumMan/glTF/CesiumMan.gltf#Scene0"),
 
-    let character_asset = asset_server.load("/Users/john/Dev_Assets/sketchfab/astronaut_game_character_animated/astro_scene.glb#Scene0");
+    let character_asset = asset_server.load(
+        "/Users/john/Dev_Assets/sketchfab/astronaut_game_character_animated/astro_scene.glb#Scene0",
+    );
 
     game.player.entity = Some(
         commands
@@ -110,7 +116,8 @@ pub fn spawn_character(mut commands: Commands, asset_server: Res<AssetServer>, m
                 transform: Transform {
                     translation: Vec3::new(
                         game.player.i,
-                        game.board[game.player.j.round() as usize][game.player.i.round() as usize].height,
+                        game.board[game.player.j.round() as usize][game.player.i.round() as usize]
+                            .height,
                         game.player.j,
                     ),
                     rotation: Quat::from_rotation_y(-PI / 0.5),
@@ -145,7 +152,8 @@ pub fn spawn_cake(mut commands: Commands, asset_server: Res<AssetServer>, mut ga
             .spawn(SceneBundle {
                 transform: Transform::from_xyz(
                     game.cake.i,
-                    game.board[game.cake.j.round() as usize][game.cake.i.round() as usize].height + 0.2,
+                    game.board[game.cake.j.round() as usize][game.cake.i.round() as usize].height
+                        + 0.2,
                     game.cake.j,
                 ),
                 scene: game.cake.handle.clone(),
@@ -204,7 +212,8 @@ pub fn _spawn_cake_two(
             .spawn(SceneBundle {
                 transform: Transform::from_xyz(
                     game.cake.i,
-                    game.board[game.cake.j.round() as usize][game.cake.i.round() as usize].height + 0.2,
+                    game.board[game.cake.j.round() as usize][game.cake.i.round() as usize].height
+                        + 0.2,
                     game.cake.j,
                 ),
                 scene: game.cake.handle.clone(),
@@ -259,8 +268,7 @@ pub fn spawn_scoreboard(mut commands: Commands, asset_server: Res<AssetServer>) 
                 ..default()
             },
             ..default()
-        }
-        )
+        })
         .with_children(|parent| {
             parent.spawn(TextBundle::from_section(
                 // format!("Score: {}", game.cake_eaten),
@@ -273,4 +281,3 @@ pub fn spawn_scoreboard(mut commands: Commands, asset_server: Res<AssetServer>) 
             ));
         });
 }
-

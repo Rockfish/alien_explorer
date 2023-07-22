@@ -59,7 +59,5 @@ pub fn setup_game_state(mut game: ResMut<Game>) {
     game.score = 0;
     game.player.i = BOARD_SIZE_I / 2.0;
     game.player.j = BOARD_SIZE_J / 2.0;
-    game.player.move_cooldown = Timer::from_seconds(0.1, TimerMode::Once);
+    game.player.move_cooldown = Timer::from_seconds(0.01, TimerMode::Once);
 }
-
-
