@@ -5,10 +5,11 @@ use crate::camera_pan_and_orbit::*;
 use crate::camera_tracking::*;
 use crate::display::*;
 use crate::game_state::*;
-use crate::lines::*;
+// use crate::lines::*;
 use crate::player::*;
 use crate::spawn::*;
 use bevy::prelude::*;
+use crate::cylinder::spawn_cylinders;
 
 mod cake;
 mod camera_pan_and_orbit;
@@ -17,24 +18,25 @@ mod cylinder;
 mod display;
 mod game_state;
 mod lights;
-mod lines;
+// mod lines;
 mod player;
 mod spawn;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, MaterialPlugin::<LineMaterial>::default()))
+        // .add_plugins((DefaultPlugins, MaterialPlugin::<LineMaterial>::default()))
+        .add_plugins(DefaultPlugins)
         .init_resource::<Game>()
         .insert_resource(CakeSpawnTimer(Timer::from_seconds(
             5.0,
             TimerMode::Repeating,
         )))
-        .add_state::<GameState>()
+        .init_state::<GameState>()
         .add_systems(
             Startup,
             (
-                spawn_lines,
-                spawn_cylinders,
+                // spawn_lines,
+                // spawn_cylinders,
                 spawn_camera,
                 spawn_point_light,
                 setup_game_state,

@@ -1,9 +1,26 @@
 // from https://github.com/rparrett/typey_birb/blob/main/src/cylinder.rs
-
 use bevy::{
-    prelude::Mesh,
-    render::{mesh::Indices, render_resource::PrimitiveTopology},
+    pbr::{MaterialPipeline, MaterialPipelineKey},
+    prelude::*,
+    reflect::{TypePath, TypeUuid},
+    render::{
+        mesh::{MeshVertexBufferLayout, PrimitiveTopology},
+        render_resource::{
+            AsBindGroup, PolygonMode, RenderPipelineDescriptor, ShaderRef,
+            SpecializedMeshPipelineError,
+        },
+    },
 };
+use std::f32::consts::PI;
+
+// use bevy::asset::{UntypedAssetId, VisitAssetDependencies};
+// use bevy::{
+//     prelude::Mesh,
+//     render::{mesh::Indices, render_resource::PrimitiveTopology},
+// };
+use bevy::prelude::{Color, MaterialMeshBundle, Transform};
+use bevy::render::mesh::Indices;
+use bevy::render::render_asset::RenderAssetPersistencePolicy;
 
 /// A cylinder which stands on the XZ plane
 pub struct Cylinder {
@@ -117,11 +134,56 @@ impl From<Cylinder> for Mesh {
         build_cap(true);
         build_cap(false);
 
-        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList);
+        let mut mesh = Mesh::new(PrimitiveTopology::TriangleList, RenderAssetPersistencePolicy::Unload);
         mesh.set_indices(Some(Indices::U32(indices)));
         mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
         mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
         mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
         mesh
     }
+}
+
+pub fn spawn_cylinders(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    commands.spawn(MaterialMeshBundle {
+        mesh: meshes.add(Mesh::from(Cylinder {
+            radius: 0.04,
+            height: 2.0,
+            resolution: 20,
+            segments: 10,
+        })),
+        material: materials.add(Color::rgb(0.63, 0.96, 0.26).into()), // greenish - y up
+        transform: Transform::from_xyz(0.0, 1.0, 0.0),
+        // .with_rotation(Quat::from_rotation_x(-PI / 4.)),
+        ..default()
+    });
+
+    commands.spawn(MaterialMeshBundle {
+        mesh: meshes.add(Mesh::from(Cylinder {
+            radius: 0.04,
+            height: 2.0,
+            resolution: 20,
+            segments: 10,
+        })),
+        // material: materials.add(LineMaterial { color: Color::YELLOW, }),
+        material: materials.add(Color::rgb(0.96, 0.20, 0.20).into()), // redish - x right
+        transform: Transform::from_xyz(1.0, 0.0, 0.0).with_rotation(Quat::from_rotation_z(PI / 2.)),
+        ..default()
+    });
+
+    commands.spawn(MaterialMeshBundle {
+        mesh: meshes.add(Mesh::from(Cylinder {
+            radius: 0.04,
+            height: 2.0,
+            resolution: 20,
+            segments: 10,
+        })),
+        // material: materials.add(LineMaterial { color: Color::YELLOW, }),
+        material: materials.add(Color::rgb(0.20, 0.20, 0.96).into()), // bluish z - out
+        transform: Transform::from_xyz(0.0, 0.0, 1.0).with_rotation(Quat::from_rotation_x(PI / 2.)),
+        ..default()
+    });
 }

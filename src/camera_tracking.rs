@@ -34,14 +34,15 @@ pub fn update_tracking_camera(
     primary_query: Query<&Window, With<PrimaryWindow>>,
     mut ev_mouse_motion: EventReader<MouseMotion>,
     mut ev_mouse_scroll: EventReader<MouseWheel>,
-    keyboard_input: Res<Input<KeyCode>>,
-    input_mouse: Res<Input<MouseButton>>,
-    input_keyboard: Res<Input<KeyCode>>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    input_mouse: Res<ButtonInput<MouseButton>>,
+    input_keyboard: Res<ButtonInput<KeyCode>>,
     mut query: Query<(&mut TrackingCamera, &mut Transform, &Projection)>,
     game: Res<Game>,
 ) {
-    // if let Ok(primary) = primary_query.get_single();
-    let primary = primary_query.get_single().unwrap();
+    let Ok(primary) = primary_query.get_single() else {
+        return;
+    };
 
     // change input mapping for orbit and panning here
     let orbit_button = MouseButton::Right;
@@ -53,17 +54,17 @@ pub fn update_tracking_camera(
     let mut orbit_button_changed = false;
 
     if input_mouse.pressed(orbit_button) && !input_keyboard.pressed(KeyCode::ShiftLeft) {
-        for mouse_motion in ev_mouse_motion.iter() {
+        for mouse_motion in ev_mouse_motion.read() {
             rotation_move += mouse_motion.delta;
         }
     } else if input_mouse.pressed(orbit_button) && input_keyboard.pressed(KeyCode::ShiftLeft) {
         // Pan only if we're not rotating at the moment
-        for mouse_motion in ev_mouse_motion.iter() {
+        for mouse_motion in ev_mouse_motion.read() {
             pan += mouse_motion.delta * 2.0;
         }
     }
 
-    for mouse_wheel in ev_mouse_scroll.iter() {
+    for mouse_wheel in ev_mouse_scroll.read() {
         scroll += mouse_wheel.y * 0.05;
     }
 
@@ -149,14 +150,20 @@ pub fn update_tracking_camera(
         }
 
         if keyboard_input.any_pressed(vec![
-            KeyCode::Up,
-            KeyCode::Down,
-            KeyCode::Right,
-            KeyCode::Left,
+            KeyCode::ArrowUp,
+            KeyCode::ArrowDown,
+            KeyCode::ArrowRight,
+            KeyCode::ArrowLeft,
         ]) {
-            println!("key pressed");
             let target = Vec3::new(game.player.i, 1., game.player.j);
+            tracking_camera.focus = target;
+
             transform.rotation = look_to(target - transform.translation, Vec3::Y);
+
+            let rot_matrix = Mat3::from_quat(transform.rotation);
+
+            transform.translation = tracking_camera.focus
+                + rot_matrix.mul_vec3(Vec3::new(0.0, 0.0, tracking_camera.radius));
         }
     }
 }

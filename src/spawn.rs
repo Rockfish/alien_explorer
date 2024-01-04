@@ -107,7 +107,8 @@ pub fn spawn_character(
     // scene: asset_server.load("/Users/john/Dev_Assets/glTF-Sample-Models/2.0/CesiumMan/glTF/CesiumMan.gltf#Scene0"),
 
     let character_asset = asset_server.load(
-        "/Users/john/Dev_Assets/sketchfab/astronaut_game_character_animated/astro_scene.glb#Scene0",
+        // "/Users/john/Dev_Assets/sketchfab/astronaut_game_character_animated/astro_scene.glb#Scene0",
+        "models/alien.glb#Scene0"
     );
 
     game.player.entity = Some(
